@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Earn Rewards</title>
+    <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- OnClicka SDK -->
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+    
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -18,87 +22,88 @@
             margin: 0;
             text-align: center;
         }
-        .ad-container {
+        .container {
             width: 90%;
             max-width: 400px;
             background: var(--tg-theme-secondary-bg-color, #f0f0f0);
             border-radius: 15px;
-            padding: 20px;
+            padding: 30px 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .video-placeholder {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #000;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        .progress-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 5px;
-            background: #248bfe;
-            width: 0%;
-            transition: width 1s linear;
         }
         .btn {
             background-color: var(--tg-theme-button-color, #248bfe);
             color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
+            padding: 15px 30px;
+            border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 16px;
-            display: none;
+            font-size: 18px;
+            width: 100%;
+            transition: transform 0.1s;
         }
-        h2 { margin-top: 0; }
-        p { opacity: 0.8; font-size: 14px; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .reward-box { display: none; margin-top: 20px; }
+        .status { font-size: 14px; opacity: 0.7; margin-top: 15px; }
     </style>
 </head>
 <body>
-    <div class="ad-container" id="ad-box">
-        <h2>Watching Ad...</h2>
-        <div class="video-placeholder">
-            <div id="status-text">▶️ Video Playing...</div>
-            <div class="progress-bar" id="progress"></div>
+    <div class="container">
+        <div id="ad-prompt">
+            <h2>Earn 500 Coins</h2>
+            <p>Watch a short video ad to claim your reward!</p>
+            <button class="btn" id="watch-btn">📺 Watch Video Ad</button>
+            <div class="status" id="status">Initializing ad engine...</div>
         </div>
-        <p>Please wait <span id="timer">10</span> seconds to claim your reward.</p>
-        <button class="btn" id="claim-btn">💰 Claim Reward</button>
+
+        <div class="reward-box" id="reward-box">
+            <h2 style="color: #4caf50;">✅ Success!</h2>
+            <p>You've earned your reward.</p>
+            <button class="btn" id="claim-btn">💰 Claim 500 Coins</button>
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Make the Mini App full height
+        tg.expand();
 
-        let seconds = 10;
-        const timerEl = document.getElementById('timer');
-        const progressEl = document.getElementById('progress');
+        const watchBtn = document.getElementById('watch-btn');
         const claimBtn = document.getElementById('claim-btn');
-        const statusText = document.getElementById('status-text');
+        const statusEl = document.getElementById('status');
+        const adPrompt = document.getElementById('ad-prompt');
+        const rewardBox = document.getElementById('reward-box');
 
-        const interval = setInterval(() => {
-            seconds--;
-            timerEl.innerText = seconds;
-            progressEl.style.width = ((10 - seconds) * 10) + "%";
+        // Initialize OnClicka with your Spot ID
+        window.initCdTma?.({ id: '440613' })
+            .then(show => {
+                window.showAd = show;
+                statusEl.innerText = "Ad ready!";
+                watchBtn.disabled = false;
+            })
+            .catch(e => {
+                console.error("Ad initialization failed:", e);
+                statusEl.innerText = "Error loading ads. Please restart.";
+            });
 
-            if (seconds <= 0) {
-                clearInterval(interval);
-                statusText.innerText = "✅ Video Finished!";
-                claimBtn.style.display = "inline-block";
-                document.querySelector('p').innerText = "You can now claim your 500 coins!";
+        watchBtn.addEventListener('click', () => {
+            if (window.showAd) {
+                statusEl.innerText = "Playing ad...";
+                window.showAd()
+                    .then(() => {
+                        // Ad was played successfully
+                        adPrompt.style.display = "none";
+                        rewardBox.style.display = "block";
+                    })
+                    .catch(e => {
+                        console.error("Ad playback failed:", e);
+                        statusEl.innerText = "Ad interrupted. Try again.";
+                    });
             }
-        }, 1000);
+        });
 
         claimBtn.addEventListener('click', () => {
-            // Send data back to the bot
             tg.sendData("reward_completed");
             tg.close();
         });
