@@ -78,27 +78,34 @@
         let globalShowAd = null;
 
         // Function to initialize the engine
-        function startEngine() {
+        async function startEngine() {
             if (!window.initCdTma) {
                 statusEl.innerText = "Error: SDK script not found.";
                 return;
             }
 
-            statusEl.innerText = "Connecting to OnClicka...";
+            statusEl.innerText = "Connecting to OnClicka (ID: 6119106)...";
             
-            window.initCdTma({ id: 440613 })
-                .then(show => {
-                    if (show) {
-                        globalShowAd = show;
-                        statusEl.innerText = "Ad ready! Click below.";
-                        watchBtn.disabled = false;
-                    } else {
-                        statusEl.innerText = "Error: Ad engine returned empty.";
-                    }
-                })
-                .catch(e => {
-                    statusEl.innerText = "Init Error: " + (e.message || "Rejected.");
-                });
+            try {
+                // Try as Number first
+                let show = await window.initCdTma({ id: 6119106 });
+                
+                // If empty, try as String
+                if (!show) {
+                    console.log("Number ID returned empty, trying String ID...");
+                    show = await window.initCdTma({ id: '6119106' });
+                }
+
+                if (show) {
+                    globalShowAd = show;
+                    statusEl.innerText = "Ad ready! Click below.";
+                    watchBtn.disabled = false;
+                } else {
+                    statusEl.innerText = "Error: Ad engine returned empty. (No ads for this region/account yet)";
+                }
+            } catch (e) {
+                statusEl.innerText = "Init Error: " + (e.message || "Rejected by server.");
+            }
         }
 
         setTimeout(startEngine, 1000);
