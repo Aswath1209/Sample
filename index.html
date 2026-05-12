@@ -83,15 +83,25 @@
             }
 
             statusEl.innerText = "Connecting to OnClicka...";
-            window.initCdTma({ id: '440613' })
+            
+            // Set a timeout so it doesn't hang forever
+            const timeout = setTimeout(() => {
+                if (!window.showAd) {
+                    statusEl.innerText = "Connection timed out. Check OnClicka dashboard.";
+                }
+            }, 10000);
+
+            window.initCdTma({ id: 440613 }) // Using number instead of string
                 .then(show => {
+                    clearTimeout(timeout);
                     window.showAd = show;
                     statusEl.innerText = "Ad ready! Click below to watch.";
                     watchBtn.disabled = false;
                 })
                 .catch(e => {
+                    clearTimeout(timeout);
                     console.error("Ad initialization failed:", e);
-                    statusEl.innerText = "Init Error: " + (e.message || "Connection timeout.");
+                    statusEl.innerText = "Init Error: " + (e.message || "Rejected by server.");
                 });
         }
 
