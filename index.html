@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Earn Rewards</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .ad-container {
+            width: 90%;
+            max-width: 400px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .video-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #248bfe;
+            width: 0%;
+            transition: width 1s linear;
+        }
+        .btn {
+            background-color: var(--tg-theme-button-color, #248bfe);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+        }
+        h2 { margin-top: 0; }
+        p { opacity: 0.8; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="ad-container" id="ad-box">
+        <h2>Watching Ad...</h2>
+        <div class="video-placeholder">
+            <div id="status-text">▶️ Video Playing...</div>
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <p>Please wait <span id="timer">10</span> seconds to claim your reward.</p>
+        <button class="btn" id="claim-btn">💰 Claim Reward</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Make the Mini App full height
+
+        let seconds = 10;
+        const timerEl = document.getElementById('timer');
+        const progressEl = document.getElementById('progress');
+        const claimBtn = document.getElementById('claim-btn');
+        const statusText = document.getElementById('status-text');
+
+        const interval = setInterval(() => {
+            seconds--;
+            timerEl.innerText = seconds;
+            progressEl.style.width = ((10 - seconds) * 10) + "%";
+
+            if (seconds <= 0) {
+                clearInterval(interval);
+                statusText.innerText = "✅ Video Finished!";
+                claimBtn.style.display = "inline-block";
+                document.querySelector('p').innerText = "You can now claim your 500 coins!";
+            }
+        }, 1000);
+
+        claimBtn.addEventListener('click', () => {
+            // Send data back to the bot
+            tg.sendData("reward_completed");
+            tg.close();
+        });
+    </script>
+</body>
+</html>
