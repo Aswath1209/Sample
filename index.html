@@ -76,16 +76,20 @@
         const rewardBox = document.getElementById('reward-box');
 
         // Initialize OnClicka with your Spot ID
-        window.initCdTma?.({ id: '440613' })
-            .then(show => {
-                window.showAd = show;
-                statusEl.innerText = "Ad ready!";
-                watchBtn.disabled = false;
-            })
-            .catch(e => {
-                console.error("Ad initialization failed:", e);
-                statusEl.innerText = "Error loading ads. Please restart.";
-            });
+        if (!window.initCdTma) {
+            statusEl.innerText = "Error: OnClicka SDK not found. Check your internet or ad blocker.";
+        } else {
+            window.initCdTma({ id: '440613' })
+                .then(show => {
+                    window.showAd = show;
+                    statusEl.innerText = "Ad ready!";
+                    watchBtn.disabled = false;
+                })
+                .catch(e => {
+                    console.error("Ad initialization failed:", e);
+                    statusEl.innerText = "Error: " + (e.message || JSON.stringify(e));
+                });
+        }
 
         watchBtn.addEventListener('click', () => {
             if (window.showAd) {
