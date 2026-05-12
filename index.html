@@ -93,7 +93,7 @@
 
         watchBtn.addEventListener('click', () => {
             if (window.showAd) {
-                statusEl.innerText = "Playing ad...";
+                statusEl.innerText = "Connecting to ad server...";
                 window.showAd()
                     .then(() => {
                         // Ad was played successfully
@@ -102,8 +102,10 @@
                     })
                     .catch(e => {
                         console.error("Ad playback failed:", e);
-                        statusEl.innerText = "Ad interrupted. Try again.";
+                        statusEl.innerText = "Playback Error: " + (e.message || "No ads available for your region.");
                     });
+            } else {
+                statusEl.innerText = "Error: Ad engine not ready.";
             }
         });
 
