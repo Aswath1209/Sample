@@ -75,54 +75,49 @@
         const adPrompt = document.getElementById('ad-prompt');
         const rewardBox = document.getElementById('reward-box');
 
+        let globalShowAd = null;
+
         // Function to initialize the engine
         function startEngine() {
             if (!window.initCdTma) {
-                statusEl.innerText = "Error: OnClicka SDK not found. Check your internet or ad blocker.";
+                statusEl.innerText = "Error: SDK script not found.";
                 return;
             }
 
             statusEl.innerText = "Connecting to OnClicka...";
             
-            // Set a timeout so it doesn't hang forever
-            const timeout = setTimeout(() => {
-                if (!window.showAd) {
-                    statusEl.innerText = "Connection timed out. Check OnClicka dashboard.";
-                }
-            }, 10000);
-
-            window.initCdTma({ id: 440613 }) // Using number instead of string
+            window.initCdTma({ id: 440613 })
                 .then(show => {
-                    clearTimeout(timeout);
-                    window.showAd = show;
-                    statusEl.innerText = "Ad ready! Click below to watch.";
-                    watchBtn.disabled = false;
+                    if (show) {
+                        globalShowAd = show;
+                        statusEl.innerText = "Ad ready! Click below.";
+                        watchBtn.disabled = false;
+                    } else {
+                        statusEl.innerText = "Error: Ad engine returned empty.";
+                    }
                 })
                 .catch(e => {
-                    clearTimeout(timeout);
-                    console.error("Ad initialization failed:", e);
-                    statusEl.innerText = "Init Error: " + (e.message || "Rejected by server.");
+                    statusEl.innerText = "Init Error: " + (e.message || "Rejected.");
                 });
         }
 
-        // Try to start after a small delay to ensure script is ready
         setTimeout(startEngine, 1000);
 
         watchBtn.addEventListener('click', () => {
-            if (window.showAd) {
-                statusEl.innerText = "Connecting to ad server...";
-                window.showAd()
+            console.log("Button clicked. globalShowAd type:", typeof globalShowAd);
+            
+            if (typeof globalShowAd === 'function') {
+                statusEl.innerText = "Opening ad...";
+                globalShowAd()
                     .then(() => {
-                        // Ad was played successfully
                         adPrompt.style.display = "none";
                         rewardBox.style.display = "block";
                     })
                     .catch(e => {
-                        console.error("Ad playback failed:", e);
-                        statusEl.innerText = "Playback Error: " + (e.message || "No ads available for your region.");
+                        statusEl.innerText = "Playback Error: " + (e.message || "No inventory.");
                     });
             } else {
-                statusEl.innerText = "Error: Ad engine not ready.";
+                statusEl.innerText = "Error: globalShowAd is " + typeof globalShowAd;
             }
         });
 
